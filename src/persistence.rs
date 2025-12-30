@@ -1,7 +1,7 @@
 use crate::bottle::Bottle;
 use crate::Error;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 pub struct Persistence {
     base_path: PathBuf,
