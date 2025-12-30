@@ -3,19 +3,103 @@ syntax = "proto3";
 package winebridge;
 
 service WineBridge {
+    // Basic Communication
     rpc Message (MessageRequest) returns (MessageResponse);
+    
+    // Process Management
     rpc RunningProcesses (RunningProcessesRequest) returns (RunningProcessesResponse);
     rpc CreateProcess (CreateProcessRequest) returns (CreateProcessResponse);
     rpc KillProcess (KillProcessRequest) returns (KillProcessResponse);
 
+    // Registry Management
     rpc CreateRegistryKey (CreateRegistryKeyRequest) returns (MessageResponse);
     rpc DeleteRegistryKey (DeleteRegistryKeyRequest) returns (MessageResponse);
     rpc GetRegistryKey (GetRegistryKeyRequest) returns (RegistryKey);
     rpc GetRegistryKeyValue (RegistryKeyRequest) returns (RegistryValue);
     rpc SetRegistryKeyValue (SetRegistryKeyValueRequest) returns (MessageResponse);
     rpc DeleteRegistryKeyValue (RegistryKeyRequest) returns (MessageResponse);
+
+    // File System Access (In-Prefix)
+    rpc CreateDirectory (FileOperationRequest) returns (FileOperationResponse);
+    rpc DeleteFile (FileOperationRequest) returns (FileOperationResponse);
+    rpc CopyFile (CopyMoveRequest) returns (FileOperationResponse);
+    rpc MoveFile (CopyMoveRequest) returns (FileOperationResponse);
+    rpc Exists (FileOperationRequest) returns (ExistsResponse);
+    rpc ListDirectory (FileOperationRequest) returns (ListDirectoryResponse);
+
+    // System / Lifecycle
+    rpc Shutdown (ShutdownRequest) returns (MessageResponse); // Terminates the Agent
+    rpc Wineboot (WinebootRequest) returns (MessageResponse); // Simulates wineboot
+    rpc GetDriveInfo (DriveInfoRequest) returns (DriveInfoResponse);
 }
 
+// --- Messages ---
+
+// General
+message MessageRequest {
+    string message = 1;
+}
+
+message MessageResponse {
+    bool success = 1;
+    string error = 2; // Optional error detail
+}
+
+// System
+message ShutdownRequest {}
+
+message WinebootRequest {
+    bool shutdown = 1; // If true, simpler shutdown
+    bool kill = 2; // If true, force kill
+}
+
+message DriveInfoRequest {}
+
+message DriveInfoResponse {
+    repeated Drive drives = 1;
+}
+
+message Drive {
+    string letter = 1; // "C", "Z"
+    string label = 2;
+    uint64 total_space = 3;
+    uint64 free_space = 4;
+}
+
+// Process
+message Process {
+    uint32 pid = 1;
+    string name = 2;
+    uint32 threads = 3;
+}
+
+message RunningProcessesRequest {}
+
+message RunningProcessesResponse {
+    repeated Process processes = 1;
+}
+
+message CreateProcessRequest {
+    string command = 1;
+    repeated string args = 2;
+    string work_dir = 3; // Optional working directory
+    map<string, string> env = 4; // Environment variables
+    bool run_elevated = 5; // Simulates "Run as Admin" behavior if possible
+}
+
+message CreateProcessResponse {
+    uint32 pid = 1;
+}
+
+message KillProcessRequest {
+    uint32 pid = 1;
+}
+
+message KillProcessResponse {
+    bool success = 1;
+}
+
+// Registry
 enum RegistryValueType {
     REG_NONE = 0;
     REG_BINARY = 1;
@@ -68,39 +152,32 @@ message DeleteRegistryKeyRequest {
     string subkey = 2;
 }
 
-message MessageRequest {
-    string message = 1;
+// File System
+message FileOperationRequest {
+    string path = 1;
 }
 
-message MessageResponse {
+message CopyMoveRequest {
+    string source = 1;
+    string destination = 2;
+}
+
+message FileOperationResponse {
     bool success = 1;
+    string error = 2;
 }
 
-message Process {
-    uint32 pid = 1;
-    string name = 2;
-    uint32 threads = 3;
+message ExistsResponse {
+    bool exists = 1;
+    bool is_dir = 2;
 }
 
-message RunningProcessesRequest {
+message ListDirectoryResponse {
+    repeated FileInfo files = 1;
 }
 
-message RunningProcessesResponse {
-    repeated Process processes = 1;
-}
-
-message CreateProcessRequest {
-    string command = 1;
-    repeated string args = 2;
-}
-
-message CreateProcessResponse {
-    uint32 pid = 1;
-}
-
-message KillProcessRequest {
-    uint32 pid = 1;
-}
-
-message KillProcessResponse {
+message FileInfo {
+    string name = 1;
+    bool is_dir = 2;
+    uint64 size = 3;
 }

@@ -1,8 +1,14 @@
 mod error;
 pub mod runner;
+pub mod bottle;
+pub mod persistence;
 pub use error::Error;
 
 pub mod proto {
-    tonic::include_proto!("winebridge");
-    tonic::include_proto!("bottles");
+    pub mod bottles {
+         tonic::include_proto!("bottles");
+    }
+    pub mod winebridge {
+         tonic::include_proto!("winebridge");
+    }
 }

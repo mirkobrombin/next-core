@@ -2,21 +2,185 @@ syntax = "proto3";
 
 package bottles;
 
-service Bottles {
+// --- Services ---
+
+service Management {
+    // Lifecycle
+    rpc CreateBottle (CreateBottleRequest) returns (Bottle);
+    rpc DeleteBottle (DeleteBottleRequest) returns (ResultResponse);
+    rpc ListBottles (ListBottlesRequest) returns (ListBottlesResponse);
+    rpc GetBottle (GetBottleRequest) returns (Bottle);
+    
+    // Power Management (Agent Lifecycle)
+    rpc StartBottle (BottleRequest) returns (ResultResponse);
+    rpc StopBottle (BottleRequest) returns (ResultResponse);
+    rpc RestartBottle (BottleRequest) returns (ResultResponse);
+}
+
+service Configuration {
+    rpc GetConfig (BottleRequest) returns (BottleConfig);
+    rpc UpdateConfig (UpdateConfigRequest) returns (BottleConfig);
+    rpc GetEnvironmentVariables (BottleRequest) returns (EnvironmentVariables);
+    rpc SetEnvironmentVariables (SetEnvironmentVariablesRequest) returns (ResultResponse);
+}
+
+service Installer {
+    rpc InstallComponent (InstallComponentRequest) returns (stream InstallProgress);
+    rpc ListComponents (ListComponentsRequest) returns (ListComponentsResponse);
+    rpc UninstallComponent (ComponentRequest) returns (ResultResponse);
+}
+
+service Runtime {
+    rpc LaunchProgram (LaunchProgramRequest) returns (LaunchProgramResponse);
+    rpc TerminateProgram (TerminateProgramRequest) returns (ResultResponse);
+    rpc ListRunningProcesses (BottleRequest) returns (ProcessList);
+}
+
+service System {
     rpc Health (HealthRequest) returns (HealthResponse);
     rpc Notify (NotifyRequest) returns (NotifyResponse);
 }
 
-message HealthRequest {}
+// --- Messages ---
 
+message ResultResponse {
+    bool success = 1;
+    string error_message = 2; // Optional, set if success is false
+}
+
+// Requests
+message CreateBottleRequest {
+    string name = 1;
+    string type = 2; // e.g., "Gaming", "Software", "Custom"
+    string runner = 3; // Optional implementation/runner override
+}
+
+message DeleteBottleRequest {
+    string name = 1;
+}
+
+message ListBottlesRequest {}
+
+message ListBottlesResponse {
+    repeated Bottle bottles = 1;
+}
+
+message GetBottleRequest {
+    string name = 1;
+}
+
+message BottleRequest {
+    string name = 1;
+}
+
+// Entities
+message Bottle {
+    string name = 1;
+    string path = 2;
+    string type = 3;
+    bool active = 4; // True if the Agent is running for this bottle
+    BottleConfig config = 5;
+}
+
+message BottleConfig {
+    string runner = 1;
+    string dxvk_version = 2;
+    string vkd3d_version = 3;
+    string latencyflex_version = 4; // Optional
+    bool dxvk_nvapi = 5;
+    bool esync = 6;
+    bool fsync = 7;
+    // Add other relevant settings
+}
+
+message EnvironmentVariables {
+    map<string, string> variables = 1;
+}
+
+message SetEnvironmentVariablesRequest {
+    string bottle_name = 1;
+    map<string, string> variables = 2;
+}
+
+message UpdateConfigRequest {
+    string bottle_name = 1;
+    BottleConfig config = 2;
+}
+
+// Components
+message InstallComponentRequest {
+    string bottle_name = 1;
+    string component_id = 2; // e.g., "dxvk", "dotnet48"
+    string version = 3; // Optional, uses 'latest' if empty
+}
+
+message InstallProgress {
+    int32 percentage = 1;
+    string status_message = 2;
+    bool data_complete = 3;
+}
+
+message ListComponentsRequest {
+    string filter_type = 1; // Optional: "runner", "dependency", "layer"
+}
+
+message ListComponentsResponse {
+    repeated Component components = 1;
+}
+
+message ComponentRequest {
+    string bottle_name = 1;
+    string component_id = 2;
+}
+
+message Component {
+    string id = 1;
+    string name = 2;
+    string version = 3;
+    string type = 4;
+}
+
+// Runtime
+message LaunchProgramRequest {
+    string bottle_name = 1;
+    string program_path = 2; // Path inside the bottle or mapped absolute path
+    repeated string arguments = 3;
+    string work_dir = 4;
+    map<string, string> env_overrides = 5;
+    bool run_in_terminal = 6;
+}
+
+message LaunchProgramResponse {
+    uint32 pid = 1;
+    bool success = 2;
+}
+
+message TerminateProgramRequest {
+    string bottle_name = 1;
+    uint32 pid = 2;
+}
+
+message ProcessList {
+    repeated ProcessInfo processes = 1;
+}
+
+message ProcessInfo {
+    uint32 pid = 1;
+    string name = 2;
+    uint32 threads = 3;
+    // Memory, CPU could be added here
+}
+
+// System
+message HealthRequest {}
 message HealthResponse {
     bool ok = 1;
+    string version = 2;
 }
 
 message NotifyRequest {
     string message = 1;
 }
-
 message NotifyResponse {
     bool success = 1;
 }
