@@ -45,16 +45,26 @@ impl Runner for Proton {
         &mut self.info
     }
 
-    fn initialize(&self, prefix: impl AsRef<Path>) -> Result<(), crate::Error> {
+    fn initialize(&self, prefix: &Path) -> Result<(), crate::Error> {
         // FIXME: Launch winebridge to initialize the prefix
         Command::new(self.info().executable_path())
             .arg("run")
             .arg("wineboot")
-            .env("WINEPREFIX", prefix.as_ref())
-            .env("STEAM_COMPAT_DATA_PATH", prefix.as_ref())
+            .env("WINEPREFIX", prefix)
+            .env("STEAM_COMPAT_DATA_PATH", prefix)
             .env("STEAM_COMPAT_CLIENT_INSTALL_PATH", "")
             .output()?;
 
         Ok(())
+    }
+
+    fn launch(
+        &self,
+        executable: &Path,
+        args: &[String],
+        prefix: &Path,
+        env: &std::collections::HashMap<String, String>,
+    ) -> Result<std::process::Child, crate::Error> {
+        todo!("Launch Proton")
     }
 }

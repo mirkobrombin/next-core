@@ -210,5 +210,25 @@ pub trait Runner {
     ///
     /// * `prefix` - Path where the new prefix should be created. The directory will be
     ///   created if it doesn't exist.
-    fn initialize(&self, prefix: impl AsRef<Path>) -> Result<(), Error>;
+    fn initialize(&self, prefix: &Path) -> Result<(), Error>;
+
+    /// Launch a command inside the runner environment.
+    ///
+    /// # Arguments
+    ///
+    /// * `executable` - Path to the executable to run (inside the bottle).
+    /// * `args` - Arguments to pass to the executable.
+    /// * `prefix` - The Wine prefix path.
+    /// * `env` - Additional environment variables.
+    ///
+    /// # Returns
+    ///
+    /// A `std::process::Child` handle to the running process.
+    fn launch(
+        &self,
+        executable: &Path,
+        args: &[String],
+        prefix: &Path,
+        env: &std::collections::HashMap<String, String>,
+    ) -> Result<std::process::Child, Error>;
 }

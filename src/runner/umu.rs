@@ -52,14 +52,24 @@ impl Runner for UMU {
         &mut self.info
     }
 
-    fn initialize(&self, prefix: impl AsRef<Path>) -> Result<(), crate::Error> {
+    fn initialize(&self, prefix: &Path) -> Result<(), crate::Error> {
         // FIXME: Launch winebridge to initialize the prefix
         let proton_path = self.proton.as_ref().unwrap().info().directory();
         Command::new(self.info().executable_path())
             .arg("wineboot") // This is wrong but it'll anyways initialize the prefix
-            .env("WINEPREFIX", prefix.as_ref())
+            .env("WINEPREFIX", prefix)
             .env("PROTONPATH", proton_path)
             .output()?;
         Ok(())
+    }
+
+    fn launch(
+        &self,
+        executable: &Path,
+        args: &[String],
+        prefix: &Path,
+        env: &std::collections::HashMap<String, String>,
+    ) -> Result<std::process::Child, crate::Error> {
+        todo!("Launch UMU")
     }
 }

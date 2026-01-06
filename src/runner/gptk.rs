@@ -88,7 +88,17 @@ impl Runner for GPTK {
         arch_output == "i386" || arch_output == "arm64"
     }
 
-    fn initialize(&self, _prefix: impl AsRef<Path>) -> Result<(), crate::Error> {
+    fn initialize(&self, _prefix: &Path) -> Result<(), crate::Error> {
         todo!("Initialize GPTK")
+    }
+
+    fn launch(
+        &self,
+        _executable: &Path,
+        _args: &[String],
+        _prefix: &Path,
+        _env: &std::collections::HashMap<String, String>,
+    ) -> Result<std::process::Child, crate::Error> {
+        todo!("Launch GPTK")
     }
 }
